@@ -31,9 +31,12 @@ const [submitting, setSubmitting] = useState(false);
 const onSubmit =   handleSubmit(async (data)=>{
   try {
     setSubmitting(true)
+    if(issue)
+    await axios.patch('/api/issues/' + issue.id, data)
+   else
       await axios.post('/api/issues', data)
       router.push('/issues');
-      
+      router.refresh();
   } catch (error) {
     setError('An unexpected error occured')
     setSubmitting(false)
@@ -60,7 +63,10 @@ defaultValue={issue?.description}
 render={({ field })=><SimpleMDE placeholder='Description' {...field}/>}
 />
 <ErrorMessage>{errors.description?.message}</ErrorMessage>
-<Button disabled={submitting}>Submit New issue {submitting && <Spinner/>} </Button>
+<Button disabled={submitting}>
+ { issue? 'Update Issue' : 'Submit New issue'}{' '}
+ {submitting && <Spinner/>} 
+  </Button>
 </form>
 
 </div>
