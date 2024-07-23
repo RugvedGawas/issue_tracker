@@ -8,7 +8,6 @@ export async function PATCH(
 request: NextRequest, 
 
 { params } : {params : { id: string }} ){
-  await delay(2000)
   const body =   await request.json();
   const validation = validationSchema.safeParse(body);
   if(!validation.success)
