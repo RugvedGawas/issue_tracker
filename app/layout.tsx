@@ -6,6 +6,8 @@ import { Inter } from 'next/font/google'
 import Navbar from './Navbar'
 import { Container, Theme, ThemePanel } from '@radix-ui/themes';
 import AuthProvider from './auth/Provider';
+import { QueryClientProvider } from '@tanstack/react-query';
+import ReactQueryClientProvider from './ReactQueryClientProvider';
 
 const inter = Inter({ subsets: ['latin'],
 variable: '--font-inter',
@@ -24,6 +26,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.variable}>
+      <ReactQueryClientProvider>
+
         <AuthProvider>
 
       <Theme accentColor="blue" radius="large">
@@ -36,6 +40,8 @@ export default function RootLayout({
       
         </Theme>
         </AuthProvider>
+        
+      </ReactQueryClientProvider>
        
       </body>
     </html>
