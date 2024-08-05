@@ -1,61 +1,71 @@
-import { validationSchema } from "@/app/validationSchema";
+import { validationSchema, patchIssueSchema } from "@/app/validationSchema";
 import prisma from "@/prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import delay  from "delay";
+import delay from "delay";
 import { getServerSession } from "next-auth";
 import authOptions from "@/app/auth/authOptions";
-
+import { title } from "process";
 
 export async function PATCH(
-request: NextRequest, 
+  request: NextRequest,
 
-{ params } : {params : { id: string }} ){
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession(authOptions);
-  if(!session)
-      return NextResponse.json({}, { status: 401});
-  
-  const body =   await request.json();
-  const validation = validationSchema.safeParse(body);
-  if(!validation.success)
-    return NextResponse.json(validation.error.format(), {status : 400});
+  if (!session) return NextResponse.json({}, { status: 401 });
+
+  const body = await request.json();
+  const validation = patchIssueSchema.safeParse(body);
+  if (!validation.success)
+    return NextResponse.json(validation.error.format(), { status: 400 });
+
+  const { assignedToUserId, title, description } = body;
+  if (assignedToUserId) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: assignedToUserId,
+      },
+    });
+    if (!user)
+      return NextResponse.json({ error: "invalid user." }, { status: 400 });
+  }
 
   const issue = await prisma.issue.findUnique({
-    where: { id: parseInt(params.id)}
+    where: { id: parseInt(params.id) },
   });
-  if(!issue)
-    return NextResponse.json({ error : 'Invalid issue' }, { status: 404})
+  if (!issue)
+    return NextResponse.json({ error: "Invalid issue" }, { status: 404 });
 
   const updatedIssue = await prisma.issue.update({
-    where : { id: issue.id},
+    where: { id: issue.id },
     data: {
-        title: body.title,
-        description: body.description
-    }
-
-  })
+      title,
+      description,
+      assignedToUserId,
+    },
+  });
 
   return NextResponse.json(updatedIssue);
 }
 
 export async function DELETE(
-  request: NextRequest, 
-  
-  { params } : {params : { id: string }} ){
+  request: NextRequest,
 
-    const session = await getServerSession(authOptions);
-    if(!session)
-        return NextResponse.json({}, { status: 401});
-      
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({}, { status: 401 });
+
   const issue = await prisma.issue.findUnique({
-    where :{ id: parseInt(params.id)}
-   });
+    where: { id: parseInt(params.id) },
+  });
 
-   if(!issue)
-    return NextResponse.json({ error: 'Invalid issue'}, { status: 404})
+  if (!issue)
+    return NextResponse.json({ error: "Invalid issue" }, { status: 404 });
 
-   await prisma.issue.delete({
-    where:{ id: issue.id}
-   })
+  await prisma.issue.delete({
+    where: { id: issue.id },
+  });
 
-   return NextResponse.json({});
-  }
+  return NextResponse.json({});
+}
